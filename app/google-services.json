@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "726881763293",
+    "project_id": "itcs-4102-final",
+    "storage_bucket": "itcs-4102-final.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726881763293:android:d3257edbeca8a43b430034",
+        "android_client_info": {
+          "package_name": "com.example.itcs_4102_kotlin_final"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "726881763293-ctd6rjj3l07vv3a288h5ra1p6gi26hkj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNEdzmvaPw4q3wEKLB1nTnNliOu4A02Z4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "726881763293-ctd6rjj3l07vv3a288h5ra1p6gi26hkj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">ITCS_4102_Kotlin_final</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="emailWord">Email</string>
+    <string name="passwordWord">Password</string>
+    <string name="loginWord">Login</string>
+    <string name="create_new_account">Create New Account</string>
+    <string name="submitWord">Submit</string>
+    <string name="cancelWord">Cancel</string>
 </resources>
