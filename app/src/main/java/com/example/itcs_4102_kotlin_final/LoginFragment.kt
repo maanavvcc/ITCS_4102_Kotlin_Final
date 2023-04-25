@@ -1,42 +1,60 @@
 package com.example.itcs_4102_kotlin_final
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import com.example.itcs_4102_kotlin_final.databinding.FragmentLoginBinding
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 
 class LoginFragment : Fragment() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
-    var mBinding
+    private var mBinding: FragmentLoginBinding? = null
+    private var mListener: LoginListener? = null
+    private var mAuth: FirebaseAuth? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         mBinding = FragmentLoginBinding.inflate(inflater, container, false)
+        return mBinding!!.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment LoginFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            LoginFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        mListener = context as LoginListener
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        mAuth = FirebaseAuth.getInstance()
+        mBinding!!.buttonLogin.setOnClickListener{
+            val email = mBinding!!.editTextEmail.text.toString()
+            val password = mBinding!!.editTextPassword.text.toString()
+            if (email.isEmpty()) {
+                Toast.makeText(context, "Please enter an email", Toast.LENGTH_SHORT).show()
+            } else if (password.isEmpty()) {
+                Toast.makeText(context, "Password is required", Toast.LENGTH_SHORT).show()
+            } else {
+                mAuth!!.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task: Task<AuthResult?> ->
+                        if(task.isSuccessful){mListener!!.login()}
+                        else{Toast.makeText(context,"Login Failed",Toast.LENGTH_SHORT).show()}
+                    }
             }
+        }
+        mBinding!!.buttonCreateNew.setOnClickListener { mListener!!.newAccount() }
+        requireActivity().title = "Login"
+    }
+
+    interface LoginListener{
+        fun login()
+        fun newAccount()
     }
 }
