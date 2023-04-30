@@ -33,4 +33,9 @@
     <string name="buyWord">Buy</string>
     <string name="freeWord">Free</string>
     <string name="getWord">, get</string>
+    <string name="subtotalWord">Subtotal:</string>
+    <string name="taxWord">Tax:</string>
+    <string name="discountWord">Discount:</string>
+    <string name="new_subtotalWord">New Subtotal:</string>
+    <string name="click_an_item_to_view_its_couponsWords">Click an item to view its coupons.</string>
 </resources>

@@ -28,17 +28,22 @@ class MainFragment : Fragment() {
         setHasOptionsMenu(true)
         db.collection("People").document(mAuth.uid!!).collection("Coupons").addSnapshotListener { value, error ->
             var counter: Int = 0
-            for(doc in value!!){
-                counter += 1
-            }
-            mBinding!!.textViewCoupons.setText(counter)
+            try {
+                for (doc in value!!) {
+                    counter += 1
+                }
+                mBinding!!.textViewCoupons.setText(counter.toString())
+            }catch(e: NullPointerException){mBinding!!.textViewCoupons.setText("Empty")}
         }
         db.collection("People").document(mAuth.uid!!).collection("Items").addSnapshotListener { value, error ->
             var counter: Int = 0
-            for(doc in value!!){
-                counter += 1
-            }
-            mBinding!!.textViewItemsCart.setText(counter)
+            try {
+                for (doc in value!!) {
+                    counter += 1
+                }
+                mBinding!!.textViewItemsCart.setText(counter.toString())
+            }catch(e:NullPointerException){mBinding!!.textViewItemsCart.setText("Empty")}
+
         }
         mBinding!!.buttonCoupons.setOnClickListener{mListener!!.coupons()}
         mBinding!!.buttonGroceryList.setOnClickListener{mListener!!.grocery()}

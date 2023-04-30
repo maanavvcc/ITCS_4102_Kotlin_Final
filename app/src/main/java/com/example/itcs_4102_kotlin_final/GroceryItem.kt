@@ -19,8 +19,8 @@ class GroceryItem {
 
     constructor(item: DocumentSnapshot) {
         this.name = item.get("name") as String
-        this.amount = item.get("amount") as Int
-        this.price = item.get("price") as Double
+        this.amount = item.get("amount").toString().toInt()
+        this.price = item.get("price").toString().toDouble()
         this.id = item.id
     }
 }

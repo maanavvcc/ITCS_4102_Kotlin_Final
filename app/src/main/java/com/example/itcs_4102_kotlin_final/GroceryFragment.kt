@@ -13,6 +13,7 @@ import com.example.itcs_4102_kotlin_final.databinding.FragmentGroceryBinding
 import com.example.itcs_4102_kotlin_final.databinding.ListItemGroceryBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.DecimalFormat
 
 class GroceryFragment : Fragment() {
 
@@ -34,32 +35,38 @@ class GroceryFragment : Fragment() {
         db.collection("People").document(mAuth.uid!!).collection("Items").addSnapshotListener { value, _ ->
             mBinding!!.rvItemList.layoutManager = LinearLayoutManager(context)
             val groceryItems = mutableListOf<GroceryItem>()
-            for(item in value!!){
-                groceryItems.add(GroceryItem(item))
-            }
+            //try {
+                for (item in value!!) {
+                    groceryItems.add(GroceryItem(item))
+                }
+            //}catch(e:NullPointerException){}
             val adapter = ItemsAdapter(groceryItems)
             mBinding!!.rvItemList.adapter = adapter
         }
         mBinding!!.buttonBackFromItems.setOnClickListener { mListener!!.goBack() }
         mBinding!!.buttonAddItem.setOnClickListener {
-            val name = mBinding!!.editTextItemName.text.toString()
+            var name = mBinding!!.editTextItemName.text.toString()
             val amtString = mBinding!!.editTextAmount.text.toString()
             val priceString = mBinding!!.editTextPrice.text.toString()
-            val amt = amtString.toInt()
-            val price = priceString.toDouble()
-            if(name.isEmpty()){Toast.makeText(context,"Please enter a name",Toast.LENGTH_SHORT).show()}
-            else if(amtString.isEmpty()){Toast.makeText(context,"Please enter an amount",Toast.LENGTH_SHORT).show()}
-            else if(amt < 0){Toast.makeText(context,"Please enter an amount greater than 0",Toast.LENGTH_SHORT).show()}
-            else if(priceString.isEmpty()){Toast.makeText(context,"Please enter a price",Toast.LENGTH_SHORT).show()}
-            else if(price < 0){Toast.makeText(context,"Please enter a price greater than 0",Toast.LENGTH_SHORT).show()}
-            else{
-                val itemToAdd = hashMapOf(
-                    "name" to name,
-                    "amount" to amt,
-                    "price" to price
-                )
-                db.collection("People").document(mAuth.uid!!).collection("Items").document(name).set(itemToAdd)
-                    .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
+            try {
+                val amt = amtString.toInt()
+                val price = priceString.toDouble()
+                if(name.isEmpty() or name.isBlank()){Toast.makeText(context,"Please enter a name",Toast.LENGTH_SHORT).show()}
+                else if(amt <= 0){Toast.makeText(context,"Please enter an amount greater than 0",Toast.LENGTH_SHORT).show()}
+                else if(price <= 0){Toast.makeText(context,"Please enter a price greater than 0",Toast.LENGTH_SHORT).show()}
+                else{
+                    name.lowercase()
+                    val itemToAdd = hashMapOf(
+                        "name" to name,
+                        "amount" to amt,
+                        "price" to price
+                    )
+                    name = name.replace(" ","")
+                    db.collection("People").document(mAuth.uid!!).collection("Items").document(name).set(itemToAdd)
+                        .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
+                }
+            }catch(e:NumberFormatException){
+                Toast.makeText(context,"Please fill in all of the blanks",Toast.LENGTH_SHORT).show()
             }
         }
         requireActivity().title = "Items"
@@ -83,12 +90,13 @@ class GroceryFragment : Fragment() {
                 mBinding.root
             ) {
             fun setup(g:GroceryItem){
-                mBinding.textViewItemAmt.text = g.amount.toString()
+                val dec = DecimalFormat("#,###.00")
+                val total = "$"+ dec.format(g.price * g.amount)
+                val priceSet = "$"+dec.format(g.price)
+                mBinding.textViewItemAmt.text = "x"+g.amount
                 mBinding.textViewItemName.text = g.name
-                val priceSet = "$"+g.price.toString()
                 mBinding.textViewItemPrice.text = priceSet
-                val total = g.price * g.amount
-                mBinding.textViewTotalPrice.text = total.toString()
+                mBinding.textViewSubtotal.text = total
                 mBinding.imageViewDeleteItem.setOnClickListener{
                     db.collection("People").document(mAuth.uid!!).collection("Items").document(g.id).delete()
                 }

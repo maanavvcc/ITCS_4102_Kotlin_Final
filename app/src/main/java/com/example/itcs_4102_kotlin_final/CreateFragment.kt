@@ -33,11 +33,11 @@ class CreateFragment : Fragment() {
             val email = mBinding!!.editTextEmail.text.toString()
             val password = mBinding!!.editTextPassword.text.toString()
             val name = mBinding!!.editTextName.text.toString()
-            if(email.isEmpty()){
+            if(email.isEmpty() or email.isBlank()){
                 Toast.makeText(context,"Email is required",Toast.LENGTH_SHORT).show()
-            }else if(password.isEmpty()){
+            }else if(password.isEmpty() or password.isBlank()){
                 Toast.makeText(context,"Password is required",Toast.LENGTH_SHORT).show()
-            }else if(name.isEmpty()){
+            }else if(name.isEmpty() or name.isBlank()){
                 Toast.makeText(context,"Name is required",Toast.LENGTH_SHORT).show()
             }else{
                 val mAuth = FirebaseAuth.getInstance()
@@ -45,7 +45,9 @@ class CreateFragment : Fragment() {
                 mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task: Task<AuthResult> ->
                         if(task.isSuccessful){
-                            db.collection("People").document(mAuth.uid!!).update("name", name).addOnCompleteListener { task1: Task<Void> ->
+                            val docAddName = hashMapOf<String, Any?>(
+                                "name" to name)
+                            db.collection("People").document(mAuth.uid!!).set(docAddName).addOnCompleteListener { task1: Task<Void> ->
                                 if(task1.isSuccessful){mListener!!.signUp()}
                                 else{Toast.makeText(context, task1.exception!!.message,Toast.LENGTH_SHORT).show()}
                             }

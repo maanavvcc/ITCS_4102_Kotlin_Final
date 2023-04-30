@@ -12,8 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.itcs_4102_kotlin_final.databinding.FragmentCouponBinding
 import com.example.itcs_4102_kotlin_final.databinding.ListItemCouponBinding
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.random.Random
 
@@ -37,13 +39,15 @@ class CouponFragment : Fragment() {
         mBinding!!.buttonBackFromCoupons.setOnClickListener { mListener!!.goBack() }
         var couponType = 0
         val spinsList = mutableListOf<SpinnerItems>()
+        val spinsNames = mutableListOf<String>()
         db.collection("People").document(mAuth.uid!!).collection("Items").addSnapshotListener { value, _ ->
-            val spinsNames = mutableListOf<String>()
             spinsNames.add("General")
-            for(doc in value!!){
-                spinsList.add(SpinnerItems(doc))
-                spinsNames.add(doc.get("name").toString())
-            }
+            try {
+                for (doc in value!!) {
+                    spinsList.add(SpinnerItems(doc))
+                    spinsNames.add(doc.get("name").toString())
+                }
+            }catch(e:NullPointerException){}
             val spinnerAdapter = ArrayAdapter(requireContext(),android.R.layout.simple_spinner_item, spinsNames)
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             mBinding!!.spinnerItems.adapter=spinnerAdapter
@@ -54,98 +58,117 @@ class CouponFragment : Fragment() {
                     couponType = 1
                     mBinding!!.editTextBuyAmt.visibility = View.VISIBLE
                     mBinding!!.editTextFreeAmt.visibility = View.VISIBLE
+                    mBinding!!.textViewperSign.visibility = View.INVISIBLE
+                    mBinding!!.editTextPerOff.visibility = View.INVISIBLE
+                    mBinding!!.textViewdollarSign.visibility = View.INVISIBLE
+                    mBinding!!.editTextAmtOff.visibility = View.INVISIBLE
                 }
                 R.id.radPerOff -> {
                     couponType = 2
                     mBinding!!.textViewperSign.visibility = View.VISIBLE
                     mBinding!!.editTextPerOff.visibility = View.VISIBLE
+                    mBinding!!.editTextBuyAmt.visibility = View.INVISIBLE
+                    mBinding!!.editTextFreeAmt.visibility = View.INVISIBLE
+                    mBinding!!.textViewdollarSign.visibility = View.INVISIBLE
+                    mBinding!!.editTextAmtOff.visibility = View.INVISIBLE
                 }
                 R.id.radAmountOff -> {
                     couponType = 3
                     mBinding!!.textViewdollarSign.visibility = View.VISIBLE
                     mBinding!!.editTextAmtOff.visibility = View.VISIBLE
+                    mBinding!!.editTextBuyAmt.visibility = View.INVISIBLE
+                    mBinding!!.editTextFreeAmt.visibility = View.INVISIBLE
+                    mBinding!!.textViewperSign.visibility = View.INVISIBLE
+                    mBinding!!.editTextPerOff.visibility = View.INVISIBLE
                 }
             }
         }
+        var general: DocumentReference? = null
+        db.collection("People").document("general").get().addOnCompleteListener { task: Task<DocumentSnapshot> ->
+            general = task.result.reference
+        }
         mBinding!!.buttonAddCoupon.setOnClickListener {
             val spinNum = mBinding!!.spinnerItems.selectedItemPosition
-            val general:DocumentReference = db.collection("People").document("general").get().result.reference
             when(couponType){
                 0->{Toast.makeText(context,"Please select a coupon type",Toast.LENGTH_SHORT).show()}
                 1->{
-                    val buyAmtString = mBinding!!.editTextBuyAmt.toString()
-                    val buyAmt = buyAmtString.toInt()
-                    val freeAmtString = mBinding!!.editTextFreeAmt.toString()
-                    val freeAmt = freeAmtString.toInt()
-                    if(buyAmtString.isEmpty() or freeAmtString.isEmpty() or (buyAmt < 1) or (freeAmt < 1)){
-                        Toast.makeText(context,"Please enter a value greater than 0 into both entries",Toast.LENGTH_SHORT).show()}
-                    else if (spinNum < 1){Toast.makeText(context,"Please select an item for this coupon type",Toast.LENGTH_SHORT).show()}
-                    else{
-                        val couponToAdd = hashMapOf(
-                            "type" to 1,
-                            "for" to spinsList[1+spinNum].ref,
-                            "buyAmt" to buyAmt,
-                            "freeAmt" to freeAmt
-                        )
-                        val docName = spinsList[spinNum-1].name + "1"
-                        db.collection("People").document(mAuth.uid!!).collection("Items").document(docName).set(couponToAdd)
-                            .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
-                    }
+                    try{
+                        val buyAmt = (mBinding!!.editTextBuyAmt.text.toString()).toInt()
+                        val freeAmt = (mBinding!!.editTextFreeAmt.text.toString()).toInt()
+                        if((buyAmt < 1) or (freeAmt < 1)){
+                            Toast.makeText(context,"Please enter a value greater than 0 into both entries",Toast.LENGTH_SHORT).show()}
+                        else if (spinNum == 0){Toast.makeText(context,"Please select an item for this coupon type",Toast.LENGTH_SHORT).show()}
+                        else{
+                            val couponToAdd = hashMapOf(
+                                "type" to 1,
+                                "for" to spinsList[spinNum-1].ref,
+                                "buyAmt" to buyAmt,
+                                "freeAmt" to freeAmt
+                            )
+                            val docName = spinsList[spinNum-1].name + "1"
+                            db.collection("People").document(mAuth.uid!!).collection("Coupons").document(docName).set(couponToAdd)
+                                .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
+                        }
+                    }catch(e:NumberFormatException){Toast.makeText(context,"Please enter a value greater than 0 into both entries",Toast.LENGTH_SHORT).show()}
                 }
                 2->{
-                    val perOffString = mBinding!!.editTextPerOff.toString()
-                    val perOff = perOffString.toInt()
-                    if(perOffString.isEmpty() or (perOff>100) or (perOff < 1)){
-                            Toast.makeText(context,"Please enter a value greater than 0 and less 100 into the entry",Toast.LENGTH_SHORT).show()}
-                    else if (spinNum<0){Toast.makeText(context,"Please select an item for this coupon type",Toast.LENGTH_SHORT).show()}
-                    else{
-                        val docName:String
-                        val couponToAdd: HashMap<String,Any?>
-                        if(spinNum>0){
-                            couponToAdd = hashMapOf(
-                                "type" to 2,
-                                "perOff" to perOff,
-                                "for" to (spinsList[spinNum-1].ref)
-                            )
-                            docName = spinsList[spinNum-1].name + "1"
-                        }else{
-                            couponToAdd = hashMapOf(
-                                "type" to 2,
-                                "perOff" to perOff,
-                                "for" to general
-                            )
-                            docName = "General" + "1" + Random(100000).nextInt().toString()
+                    try{
+                        val perOff = mBinding!!.editTextPerOff.text.toString().toInt()
+                        if((perOff>100) or (perOff < 1)){
+                                Toast.makeText(context,"Please enter a value greater than 0 and less 100 into the entry",Toast.LENGTH_SHORT).show()}
+                        else{
+                            val docName:String
+                            val couponToAdd: HashMap<String,Any?>
+                            if(spinNum>0){
+                                couponToAdd = hashMapOf(
+                                    "type" to 2,
+                                    "perOff" to perOff,
+                                    "for" to (spinsList[spinNum-1].ref)
+                                )
+                                docName = spinsList[spinNum-1].name + "2"
+                            }else{
+                                couponToAdd = hashMapOf(
+                                    "type" to 2,
+                                    "perOff" to perOff,
+                                    "for" to general
+                                )
+                                docName = "General2"
+                            }
+                            db.collection("People").document(mAuth.uid!!).collection("Coupons").document(docName).set(couponToAdd)
+                                .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
                         }
-                        db.collection("People").document(mAuth.uid!!).collection("Items").document(docName).set(couponToAdd)
-                            .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
-                    }
+                    }catch(e:NumberFormatException){Toast.makeText(context,"Please enter a value greater than 0 and less 100 into the entry",Toast.LENGTH_SHORT).show()}
                 }
                 3->{
-                    val amtOffString = mBinding!!.editTextAmtOff.toString()
-                    val amtOff = amtOffString.toDouble()
-                    if(amtOffString.isEmpty() or (amtOff < 0) or (amtOff > (spinsList[spinNum-1]).price)){
-                        Toast.makeText(context,"Please enter a value greater than 0 and less than the item price",Toast.LENGTH_SHORT).show()
-                    }else{
-                        val docName:String
-                        val couponToAdd: HashMap<String,Any?>
-                        if(spinNum>0){
-                            couponToAdd = hashMapOf(
-                                "type" to 2,
-                                "amtOff" to amtOff,
-                                "for" to (spinsList[spinNum-1].ref)
-                            )
-                            docName = spinsList[spinNum-1].name + "1"
+                    try{
+                        val amtOff = mBinding!!.editTextAmtOff.text.toString().toDouble()
+                        if((amtOff < 0)){
+                            Toast.makeText(context,"Please enter a value greater than 0",Toast.LENGTH_SHORT).show()
+                        }
+                        else if(spinNum != 0){
+                                if(amtOff > (spinsList[spinNum-1]).price){
+                                    Toast.makeText(context,"Please enter a value less than the item price",Toast.LENGTH_SHORT).show()
+                                }else{
+                                    val couponToAdd = hashMapOf(
+                                        "type" to 3,
+                                        "amtOff" to amtOff,
+                                        "for" to (spinsList[spinNum-1].ref)
+                                    )
+                                    val docName:String = spinsList[spinNum-1].name + "3"
+                                    db.collection("People").document(mAuth.uid!!).collection("Coupons").document(docName).set(couponToAdd)
+                                        .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
+                                }
                         }else{
-                            couponToAdd = hashMapOf(
-                                "type" to 2,
+                            var couponToAdd = hashMapOf(
+                                "type" to 3,
                                 "amtOff" to amtOff,
                                 "for" to general
                             )
-                            docName = "General" + "1" + Random(100000).nextInt().toString()
+                            val docName:String = "General3"
+                            db.collection("People").document(mAuth.uid!!).collection("Coupons").document(docName).set(couponToAdd)
+                                .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
                         }
-                        db.collection("People").document(mAuth.uid!!).collection("Items").document(docName).set(couponToAdd)
-                            .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
-                    }
+                    }catch (e:NumberFormatException){Toast.makeText(context,"Please enter a value greater than 0 and less than the item price",Toast.LENGTH_SHORT).show()}
                 }
             }
         }
@@ -179,7 +202,9 @@ class CouponFragment : Fragment() {
                 mBinding.root
             ) {
             fun setup(c: Coupon){
-                mBinding.textViewForName.text = c.forItem.getString("name")
+                c.forItemRef.get().addOnCompleteListener { task:Task<DocumentSnapshot> ->
+                    mBinding.textViewForName.text = task.result.get("name").toString()
+                }
                 when(c.type){
                     1->{
                         mBinding.tvBuy.visibility = View.VISIBLE

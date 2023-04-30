@@ -20,10 +20,10 @@
             android:textColor="#000000"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/textViewItemPrice" />
+            app:layout_constraintEnd_toStartOf="@+id/textViewSubtotal" />
 
         <TextView
-            android:id="@+id/textViewTotalPrice"
+            android:id="@+id/textViewItemPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -36,7 +36,7 @@
             app:layout_constraintTop_toBottomOf="@+id/textViewItemAmt" />
 
         <TextView
-            android:id="@+id/textViewItemPrice"
+            android:id="@+id/textViewSubtotal"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
