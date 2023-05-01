@@ -17,7 +17,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlin.random.Random
 
 class CouponFragment : Fragment() {
 
@@ -47,7 +46,7 @@ class CouponFragment : Fragment() {
                     spinsList.add(SpinnerItems(doc))
                     spinsNames.add(doc.get("name").toString())
                 }
-            }catch(e:NullPointerException){}
+            }catch(_:NullPointerException){}
             val spinnerAdapter = ArrayAdapter(requireContext(),android.R.layout.simple_spinner_item, spinsNames)
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             mBinding!!.spinnerItems.adapter=spinnerAdapter
@@ -159,12 +158,12 @@ class CouponFragment : Fragment() {
                                         .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
                                 }
                         }else{
-                            var couponToAdd = hashMapOf(
+                            val couponToAdd = hashMapOf(
                                 "type" to 3,
                                 "amtOff" to amtOff,
                                 "for" to general
                             )
-                            val docName:String = "General3"
+                            val docName = "General3"
                             db.collection("People").document(mAuth.uid!!).collection("Coupons").document(docName).set(couponToAdd)
                                 .addOnFailureListener { e-> Toast.makeText(context,e.message,Toast.LENGTH_SHORT).show() }
                         }
@@ -184,7 +183,7 @@ class CouponFragment : Fragment() {
         requireActivity().title = "Coupons"
     }
 
-    inner class CouponsAdapter(private var mCoupons: MutableList<Coupon>): RecyclerView.Adapter<CouponsAdapter.CViewHolder>(){
+    private inner class CouponsAdapter(private var mCoupons: MutableList<Coupon>): RecyclerView.Adapter<CouponsAdapter.CViewHolder>(){
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CViewHolder {
             val binding = ListItemCouponBinding.inflate(
                 layoutInflater, parent, false

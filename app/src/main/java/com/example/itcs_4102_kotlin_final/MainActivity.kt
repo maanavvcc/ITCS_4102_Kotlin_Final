@@ -3,9 +3,8 @@ package com.example.itcs_4102_kotlin_final
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentReference
 
-class MainActivity : AppCompatActivity(), LoginFragment.LoginListener,CreateFragment.CreateListener, MainFragment.MainListener, CouponFragment.CouponListener, GroceryFragment.GroceryListener , ProcessFragment.ProcessListener{
+class MainActivity : AppCompatActivity(), LoginFragment.LoginListener,CreateFragment.CreateListener, MainFragment.MainListener, CouponFragment.CouponListener, GroceryFragment.GroceryListener , ProcessFragment.ProcessListener, ItemWithCouponListener{
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -22,8 +21,18 @@ class MainActivity : AppCompatActivity(), LoginFragment.LoginListener,CreateFrag
     }
 
     override fun goBack() {supportFragmentManager.popBackStack()}
-    override fun clickOnItem(ref: DocumentReference) {
-        TODO("Not yet implemented")
+
+    override fun clickOnItem(itemID: String) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.containerView, ItemWithCouponsFragment.newInstance(itemID) )
+            .addToBackStack(null)
+            .commit()}
+
+    override fun clickOnGeneral() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.containerView, ItemWithCouponsFragment())
+            .addToBackStack(null)
+            .commit()
     }
 
     override fun signUp() {

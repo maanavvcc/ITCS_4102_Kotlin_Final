@@ -16,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.firestore.QuerySnapshot
 import java.text.DecimalFormat
 
@@ -26,14 +25,8 @@ class ProcessFragment : Fragment() {
     private var mListener: ProcessListener? = null
     private var db = FirebaseFirestore.getInstance()
     private var mAuth = FirebaseAuth.getInstance()
-    var subtotal = 0.0
-    var allDiscounts = 0.0
-
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    private var subtotal = 0.0
+    private var allDiscounts = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -82,10 +75,10 @@ class ProcessFragment : Fragment() {
                                 }
                             }
                             2->{
-                                try{
-                                    discountAmt = ((item!!.price*item!!.amount)* i.get("perOff").toString().toInt())/100
+                                discountAmt = try{
+                                    ((item!!.price*item!!.amount)* i.get("perOff").toString().toInt())/100
                                 }catch(e:NullPointerException){
-                                    discountAmt = (subtotal * i.get("perOff").toString().toInt())/100
+                                    (subtotal * i.get("perOff").toString().toInt())/100
                                 }
                             }
                             3->{
@@ -153,6 +146,7 @@ class ProcessFragment : Fragment() {
                 mBinding.textViewSubtotal.text = total
                 mBinding.textViewDiscount.text = discount
                 mBinding.textViewNewSubtotal.text = newSub
+                mBinding.root.setOnClickListener { mListener!!.clickOnItem(g.id)}
             }
             fun setupGeneral(d:Double){
                 mBinding.tvNewSub.visibility = View.INVISIBLE
@@ -162,6 +156,7 @@ class ProcessFragment : Fragment() {
                 val discount = "$"+ dec.format(d)
                 mBinding.textViewItemName.text = name
                 mBinding.textViewDiscount.text = discount
+                mBinding.root.setOnClickListener{mListener!!.clickOnGeneral()}
             }
         }
     }
@@ -169,8 +164,9 @@ class ProcessFragment : Fragment() {
         super.onAttach(context)
         mListener = context as ProcessListener
     }
-    public interface ProcessListener{
+    interface ProcessListener{
         fun goBack()
-        fun clickOnItem(ref:DocumentReference)
+        fun clickOnItem(itemID:String)
+        fun clickOnGeneral()
     }
 }
